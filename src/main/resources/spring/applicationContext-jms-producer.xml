@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/context 
+    http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+	<context:component-scan base-package="com.my.jersey.jms" />
+	
+	<!-- ActiveMQ 连接工厂 -->
+	<bean id="connectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+		<property name="brokerURL" value="tcp://127.0.0.1:61616" />
+	</bean>
+
+	<!-- Spring Caching 连接工厂 -->
+	<bean id="cachingConnectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
+		<property name="targetConnectionFactory" ref="connectionFactory" />
+		<property name="sessionCacheSize" value="10" />
+	</bean>
+
+	<!-- Topic定义 -->
+	<bean id="notifyTopic" class="org.apache.activemq.command.ActiveMQTopic">
+		<constructor-arg value="workflow-t.notify" />
+	</bean>
+
+	<!-- Spring JMS Template -->
+	<bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+		<property name="connectionFactory" ref="cachingConnectionFactory" />
+	</bean>
+
+	<!-- 使用Spring JmsTemplate的消息生产者 -->
+	<bean id="notifyMessageProducer" class="com.cetc32.spring.jersey.jms.NotifyMessageProducer">
+		<property name="jmsTemplate" ref="jmsTemplate" />
+		<property name="notifyTopic" ref="notifyTopic" />
+	</bean>
+
+</beans>
